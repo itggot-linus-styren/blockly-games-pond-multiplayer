@@ -38,22 +38,23 @@
 
   <table id="avatarStatTable">
     <tbody>
-      <tr id="avatarStatRow"></tr>
+      <tr id="avatarStatRow1"></tr>
+      <tr id="avatarStatRow2"></tr>
     </tbody>
   </table>
 
   <table width="400">
     <tr>
       <td style="width: 190px; text-align: center; vertical-align: top;">
-        <button id="docsButton" title="{msg meaning="Pond.docsTooltip" desc="Tooltip for the button that opens the language reference documentation."}Display the language documentation.{/msg}">
-          {{msg meaning="Pond.documentation" desc="Text on the button that opens the language reference documentation.\n{lb}{lb}Identical|Documentation{rb}{rb}"}}Documentation{{/msg}}
+        <button id="docsButton" disabled title="{msg meaning="Pond.docsTooltip" desc="Tooltip for the button that opens the language reference documentation."}It's taking too long!{/msg}">
+          {{msg meaning="Pond.documentation" desc="Text on the button that opens the language reference documentation.\n{lb}{lb}Identical|Documentation{rb}{rb}"}}Timeout round{{/msg}}
         </button>
       </td>
       <td>
-        <button id="runButton" class="primary" title="{msg meaning="Games.runTooltip" desc="IBID"}Run the program you wrote.{/msg}">
-          <img src="common/1x1.gif" class="run icon21"> {msg meaning="Games.runProgram" desc="IBID"}Run Program{/msg}
+        <button id="runButton" class="primary" title="{msg meaning="Games.runTooltip" desc="IBID"}Run the next round in tournament.{/msg}">
+          <img src="common/1x1.gif" class="run icon21"> {msg meaning="Games.runProgram" desc="IBID"}Next round{/msg}
         </button>
-        <button id="resetButton" class="primary" style="display: none" title="{msg meaning="Games.resetTooltip" desc="IBID"}Stop the program and reset the level.{/msg}">
+        <button id="resetButton" class="primary" style="display: none" title="{msg meaning="Games.resetTooltip" desc="IBID"}Stop the round and reset the level.{/msg}">
           <img src="common/1x1.gif" class="stop icon21"> {msg meaning="Games.resetProgram" desc="IBID"}Reset{/msg}
         </button>
       </td>

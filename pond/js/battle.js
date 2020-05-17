@@ -1,20 +1,7 @@
 /**
- * Blockly Games: Pond
- *
- * Copyright 2013 Google Inc.
- * https://github.com/google/blockly-games
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * @license
+ * Copyright 2013 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -25,9 +12,9 @@
 
 goog.provide('Pond.Battle');
 
+goog.require('Blockly.utils.Coordinate');
+goog.require('Blockly.utils.math');
 goog.require('Pond.Avatar');
-goog.require('goog.math');
-goog.require('goog.math.Coordinate');
 
 
 /**
@@ -119,7 +106,7 @@ Pond.Battle.ticks = 0;
 /**
  * Time limit of game (in milliseconds).
  */
-Pond.Battle.TIME_LIMIT = 5 * 60 * 1000;
+Pond.Battle.TIME_LIMIT = 2 * 60 * 1000
 
 /**
  * Callback function for end of game.
@@ -128,19 +115,29 @@ Pond.Battle.TIME_LIMIT = 5 * 60 * 1000;
 Pond.Battle.doneCallback_ = null;
 
 /**
+ * Next round to play.
+ */
+Pond.Battle.round = 1;
+
+/**
+ * The round the game started in.
+ */
+Pond.Battle.startRound_ = 1;
+
+/**
  * Starting positions for avatars.
  */
 Pond.Battle.START_XY = [
-  new goog.math.Coordinate(10, 90),
-  new goog.math.Coordinate(90, 10),
-  new goog.math.Coordinate(10, 10),
-  new goog.math.Coordinate(90, 90),
+  new Blockly.utils.Coordinate(20, 80),
+  new Blockly.utils.Coordinate(80, 20),
+  new Blockly.utils.Coordinate(20, 20),
+  new Blockly.utils.Coordinate(80, 80),
   // Only first four positions are currently used.
-  new goog.math.Coordinate(50, 99),
-  new goog.math.Coordinate(50, 1),
-  new goog.math.Coordinate(1, 50),
-  new goog.math.Coordinate(99, 50),
-  new goog.math.Coordinate(50, 49)
+  new Blockly.utils.Coordinate(50, 99),
+  new Blockly.utils.Coordinate(50, 1),
+  new Blockly.utils.Coordinate(1, 50),
+  new Blockly.utils.Coordinate(99, 50),
+  new Blockly.utils.Coordinate(50, 49)
 ];
 
 /**
@@ -152,25 +149,24 @@ Pond.Battle.reset = function() {
   Pond.Battle.MISSILES.length = 0;
   Pond.Battle.RANK.length = 0;
   Pond.Battle.ticks = 0;
-  for (var i = 0, avatar; avatar = Pond.Battle.AVATARS[i]; i++) {
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
     avatar.reset();
   }
-
 };
 
 /**
  * Create avatar and add it to the battle.
  * @param {string} name Name of avatar.
  * @param {string|!Function} code Avatar's code, or a code generator.
- * @param {goog.math.Coordinate} opt_startLoc Start location.
+ * @param {Blockly.utils.Coordinate} opt_startLoc Start location.
  * @param {?number} opt_startDamage Initial damage to avatar (0-100, default 0).
  */
-Pond.Battle.addAvatar = function(name, code, opt_startLoc, opt_startDamage) {
+Pond.Battle.addAvatar = function(name, num, code, opt_startLoc, opt_startDamage) {
   if (!opt_startLoc) {
-    var i = Pond.Battle.AVATARS.length;
+    var i = Pond.Battle.AVATARS.length % 4;    
     opt_startLoc = Pond.Battle.START_XY[i];
   }
-  var avatar = new Pond.Avatar(name, code, opt_startLoc, opt_startDamage,
+  var avatar = new Pond.Avatar(name, num, code, opt_startLoc, opt_startDamage,
                                Pond.Battle);
   Pond.Battle.AVATARS.push(avatar);
 };
@@ -179,11 +175,29 @@ Pond.Battle.addAvatar = function(name, code, opt_startLoc, opt_startDamage) {
  * Start the battle executing.  Avatars should already be added.
  * @param {Function} doneCallback Function to call when game ends.
  */
-Pond.Battle.start = function(doneCallback) {
+Pond.Battle.start = function(doneCallback) {  
   Pond.Battle.doneCallback_ = doneCallback;
   Pond.Battle.endTime_ = Date.now() + Pond.Battle.TIME_LIMIT;
   console.log('Starting battle with ' + Pond.Battle.AVATARS.length +
               ' avatars.');
+  if (!BlocklyInterface.getJsCode().includes("// Round")) {
+    console.log("New challengers detected!");
+    Pond.Battle.round = 1;
+  }
+  Pond.Battle.startRound_ = Pond.Battle.round;
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+    console.log(Pond.Battle.round);
+    var index = (Pond.Battle.round + avatar.num - 1) % 4;
+    var newStartLoc = Pond.Battle.START_XY[index];
+    avatar.setStartLoc(newStartLoc);
+    console.log(avatar.name + " : " + index + " : (" + newStartLoc.x + "," + newStartLoc.y + ")");
+    try {
+      avatar.initInterpreter();
+    } catch (e) {
+      console.log(avatar + ' fails to load: ' + e);
+      avatar.die();
+    }
+  }
   Pond.Battle.update();
 };
 
@@ -197,7 +211,15 @@ Pond.Battle.update = function() {
   Pond.Battle.updateMissiles_();
   // Update state of all avatars.
   Pond.Battle.updateAvatars_();
-  if (Pond.Battle.AVATARS.length <= Pond.Battle.RANK.length + 1) {
+
+  var numLeft = 0;
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+    if (!avatar.dead) {
+      numLeft += 1;
+    }
+  }
+
+  if (numLeft < 2 || Pond.Battle.AVATARS.length <= Pond.Battle.RANK.length + 1) {
     // Game over because there are less than two avatars.
     // Schedule the game to end in a second.
     Pond.Battle.endTime_ = Math.min(Pond.Battle.endTime_, Date.now() + 1000);
@@ -213,9 +235,10 @@ Pond.Battle.update = function() {
 };
 
 Pond.Battle.stop = function() {
+  if (Pond.Battle.round != Pond.Battle.startRound_) return;
   // Add the survivors to the ranks based on their damage.
   var survivors = [];
-  for (var i = 0, avatar; avatar = Pond.Battle.AVATARS[i]; i++) {
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
     if (!avatar.dead) {
       survivors.push(avatar);
     }
@@ -225,8 +248,10 @@ Pond.Battle.stop = function() {
   while (survivors.length) {
     Pond.Battle.RANK.unshift(survivors.pop());
   }
+
   // Fire any callback.
   Pond.Battle.doneCallback_ && Pond.Battle.doneCallback_(survivorCount);
+  Pond.Battle.round++;
 };
 
 /**
@@ -242,11 +267,11 @@ Pond.Battle.updateMissiles_ = function() {
       // Boom.
       Pond.Battle.MISSILES.splice(i, 1);
       // Damage any avatar in range.
-      for (var j = 0, avatar; avatar = Pond.Battle.AVATARS[j]; j++) {
+      for (var j = 0, avatar; (avatar = Pond.Battle.AVATARS[j]); j++) {
         if (avatar.dead) {
           continue;
         }
-        var range = goog.math.Coordinate.distance(avatar.loc, missile.endLoc);
+        var range = Blockly.utils.Coordinate.distance(avatar.loc, missile.endLoc);
         var damage = (1 - range / 4) * 10;
         if (damage > 0) {
           avatar.addDamage(damage);
@@ -264,8 +289,7 @@ Pond.Battle.updateMissiles_ = function() {
  * @private
  */
 Pond.Battle.updateAvatars_ = function() {
-  for (var i = 0, avatar; avatar = Pond.Battle.AVATARS[i]; i++) {
-
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
     if (avatar.dead) {
       continue;
     }
@@ -281,7 +305,7 @@ Pond.Battle.updateAvatars_ = function() {
     if (avatar.speed > 0) {
       var tuple = Pond.Battle.closestNeighbour(avatar);
       var closestBefore = tuple[1];
-      var angleRadians = goog.math.toRadians(avatar.degree);
+      var angleRadians = Blockly.utils.math.toRadians(avatar.degree);
       var speed = avatar.speed / 100 * Pond.Battle.AVATAR_SPEED;
       var dx = Math.cos(angleRadians) * speed;
       var dy = Math.sin(angleRadians) * speed;
@@ -290,8 +314,8 @@ Pond.Battle.updateAvatars_ = function() {
       if (avatar.loc.x < 0 || avatar.loc.x > 100 ||
           avatar.loc.y < 0 || avatar.loc.y > 100) {
         // Collision with wall.
-        avatar.loc.x = goog.math.clamp(avatar.loc.x, 0, 100);
-        avatar.loc.y = goog.math.clamp(avatar.loc.y, 0, 100);
+        avatar.loc.x = Blockly.utils.math.clamp(avatar.loc.x, 0, 100);
+        avatar.loc.y = Blockly.utils.math.clamp(avatar.loc.y, 0, 100);
         var damage = avatar.speed / 100 * Pond.Battle.COLLISION_DAMAGE;
         avatar.addDamage(damage);
         avatar.speed = 0;
@@ -316,8 +340,7 @@ Pond.Battle.updateAvatars_ = function() {
           neighbour.speed = 0;
           neighbour.desiredSpeed = 0;
           Pond.Battle.EVENTS.push(
-              {'type': 'CRASH', 'avatar': avatar, 'damage': damage});
-          Pond.Battle.EVENTS.push(
+              {'type': 'CRASH', 'avatar': avatar, 'damage': damage},
               {'type': 'CRASH', 'avatar': neighbour, 'damage': damage});
         }
       }
@@ -332,7 +355,7 @@ Pond.Battle.updateAvatars_ = function() {
 Pond.Battle.updateInterpreters_ = function() {
   for (var j = 0; j < Pond.Battle.STATEMENTS_PER_FRAME; j++) {
     Pond.Battle.ticks++;
-    for (var i = 0, avatar; avatar = Pond.Battle.AVATARS[i]; i++) {
+    for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
       if (avatar.dead) {
         continue;
       }
@@ -350,106 +373,106 @@ Pond.Battle.updateInterpreters_ = function() {
 
 /**
  * Inject the Pond API into a JavaScript interpreter.
- * @param {!Interpreter} interpreter The JS Interpreter.
- * @param {!Interpreter.Object} scope Global scope.
+ * @param {!Interpreter} interpreter The JS-Interpreter.
+ * @param {!Interpreter.Object} globalObject Global object.
  */
-Pond.Battle.initInterpreter = function(interpreter, scope) {
+Pond.Battle.initInterpreter = function(interpreter, globalObject) {
   // API
   var wrapper;
   wrapper = function(degree, resolution) {
     return Pond.Battle.currentAvatar.scan(degree, resolution);
   };
-  interpreter.setProperty(scope, 'scan',
+  interpreter.setProperty(globalObject, 'scan',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function(degree, range) {
     return Pond.Battle.currentAvatar.cannon(degree, range);
   };
-  interpreter.setProperty(scope, 'cannon',
+  interpreter.setProperty(globalObject, 'cannon',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function(degree, speed) {
     Pond.Battle.currentAvatar.drive(degree, speed);
   };
-  interpreter.setProperty(scope, 'drive',
+  interpreter.setProperty(globalObject, 'drive',
       interpreter.createNativeFunction(wrapper));
-  interpreter.setProperty(scope, 'swim',
+  interpreter.setProperty(globalObject, 'swim',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     Pond.Battle.currentAvatar.stop();
   };
-  interpreter.setProperty(scope, 'stop',
+  interpreter.setProperty(globalObject, 'stop',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     return Pond.Battle.currentAvatar.damage;
   };
-  interpreter.setProperty(scope, 'damage',
+  interpreter.setProperty(globalObject, 'damage',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     return 100 - Pond.Battle.currentAvatar.damage;
   };
-  interpreter.setProperty(scope, 'health',
+  interpreter.setProperty(globalObject, 'health',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     return Pond.Battle.currentAvatar.speed;
   };
-  interpreter.setProperty(scope, 'speed',
+  interpreter.setProperty(globalObject, 'speed',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     return Pond.Battle.currentAvatar.loc.x;
   };
-  interpreter.setProperty(scope, 'loc_x',
+  interpreter.setProperty(globalObject, 'loc_x',
       interpreter.createNativeFunction(wrapper));
-  interpreter.setProperty(scope, 'getX',
+  interpreter.setProperty(globalObject, 'getX',
       interpreter.createNativeFunction(wrapper));
 
   wrapper = function() {
     return Pond.Battle.currentAvatar.loc.y;
   };
-  interpreter.setProperty(scope, 'loc_y',
+  interpreter.setProperty(globalObject, 'loc_y',
       interpreter.createNativeFunction(wrapper));
-  interpreter.setProperty(scope, 'getY',
+  interpreter.setProperty(globalObject, 'getY',
       interpreter.createNativeFunction(wrapper));
 
-  var myMath = interpreter.getProperty(scope, 'Math');
+  var myMath = interpreter.getProperty(globalObject, 'Math');
   if (myMath) {
     wrapper = function(number) {
-      return Math.sin((number) / 180 * Math.PI);
+      return Math.sin(Blockly.utils.math.toRadians(number));
     };
     interpreter.setProperty(myMath, 'sin_deg',
         interpreter.createNativeFunction(wrapper));
 
     wrapper = function(number) {
-      return Math.cos((number) / 180 * Math.PI);
+      return Math.cos(Blockly.utils.math.toRadians(number));
     };
     interpreter.setProperty(myMath, 'cos_deg',
         interpreter.createNativeFunction(wrapper));
 
     wrapper = function(number) {
-      return Math.tan((number) / 180 * Math.PI);
+      return Math.tan(Blockly.utils.math.toRadians(number));
     };
     interpreter.setProperty(myMath, 'tan_deg',
         interpreter.createNativeFunction(wrapper));
 
     wrapper = function(number) {
-      return Math.asin(number) / Math.PI * 180;
+      return Blockly.utils.math.toDegrees(Math.asin(number));
     };
     interpreter.setProperty(myMath, 'asin_deg',
         interpreter.createNativeFunction(wrapper));
 
     wrapper = function(number) {
-      return Math.acos(number) / Math.PI * 180;
+      return Blockly.utils.math.toDegrees(Math.acos(number));
     };
     interpreter.setProperty(myMath, 'acos_deg',
         interpreter.createNativeFunction(wrapper));
 
     wrapper = function(number) {
-      return Math.atan(number) / Math.PI * 180;
+      return Blockly.utils.math.toDegrees(Math.atan(number));
     };
     interpreter.setProperty(myMath, 'atan_deg',
         interpreter.createNativeFunction(wrapper));
@@ -464,10 +487,10 @@ Pond.Battle.initInterpreter = function(interpreter, scope) {
 Pond.Battle.closestNeighbour = function(avatar) {
   var closest = null;
   var distance = Infinity;
-  for (var i = 0, neighbour; neighbour = Pond.Battle.AVATARS[i]; i++) {
+  for (var i = 0, neighbour; (neighbour = Pond.Battle.AVATARS[i]); i++) {
     if (!neighbour.dead && avatar != neighbour) {
       var thisDistance = Math.min(distance,
-          goog.math.Coordinate.distance(avatar.loc, neighbour.loc));
+          Blockly.utils.Coordinate.distance(avatar.loc, neighbour.loc));
       if (thisDistance < distance) {
         distance = thisDistance;
         closest = neighbour;

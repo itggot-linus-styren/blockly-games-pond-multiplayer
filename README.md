@@ -1,3 +1,5 @@
+Updated to latest libraries and added tournament functionality.
+
 # Google's Blockly Pond Multiplayer
 
 Modified Google's Blockly Pond game for two players battles.

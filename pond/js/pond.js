@@ -1,20 +1,7 @@
 /**
- * Blockly Games: Pond
- *
- * Copyright 2013 Google Inc.
- * https://github.com/google/blockly-games
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * @license
+ * Copyright 2013 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -25,16 +12,25 @@
 
 goog.provide('Pond');
 
+goog.require('Blockly.Comment');
+goog.require('Blockly.Toolbox');
+goog.require('Blockly.Trashcan');
+goog.require('Blockly.VerticalFlyout');
 goog.require('BlocklyGames');
 goog.require('Pond.Battle');
 goog.require('Pond.Visualization');
-goog.require('goog.math.Coordinate');
+
 
 /**
- * Optional callback function for when a game ends.
- * @type function(number)
+ * Callback function for when a game ends.
+ * @param {number} survivors Number of avatars left alive.
+ * @suppress {duplicate}
  */
-Pond.endBattle = null;
+Pond.endBattle = function(survivors) {
+  Pond.Visualization.stop();  
+  var results = "// Round " + Pond.Battle.round + ": " + Pond.Battle.RANK.filter(function(avatar){return avatar.playable}).map(function(avatar){return avatar.name}).join(", ") + "\n";
+  BlocklyInterface.editor['setValue'](results + BlocklyInterface.getJsCode(), -1);
+};
 
 /**
  * Initialize the pond.  Called on page load.
@@ -49,9 +45,9 @@ Pond.init = function() {
   BlocklyGames.bindClick('closeDocs', Pond.docsCloseClick);
 
   // Lazy-load the JavaScript interpreter.
-  setTimeout(BlocklyInterface.importInterpreter, 1);
+  BlocklyInterface.importInterpreter();
   // Lazy-load the syntax-highlighting.
-  setTimeout(BlocklyInterface.importPrettify, 1);
+  BlocklyInterface.importPrettify();
 };
 
 /**
@@ -64,28 +60,7 @@ Pond.isDocsVisible_ = false;
  * Open the documentation frame.
  */
 Pond.docsButtonClick = function() {
-  if (Pond.isDocsVisible_) {
-    return;
-  }
-  var origin = document.getElementById('docsButton');
-  var dialog = document.getElementById('dialogDocs');
-  var frame = document.getElementById('frameDocs');
-  var src = 'pond/docs.html?lang=' + BlocklyGames.LANG +
-        '&mode=' + BlocklyGames.LEVEL;
-  if (frame.src != src) {
-    frame.src = src;
-  }
-
-  function endResult() {
-    dialog.style.visibility = 'visible';
-    var border = document.getElementById('dialogBorder');
-    border.style.visibility = 'hidden';
-  }
-  Pond.isDocsVisible_ = true;
-  BlocklyDialogs.matchBorder_(origin, false, 0.2);
-  BlocklyDialogs.matchBorder_(dialog, true, 0.8);
-  // In 175ms show the dialog and hide the animated border.
-  setTimeout(endResult, 175);
+  Pond.Battle.stop();
 };
 
 /**
@@ -127,6 +102,8 @@ Pond.runButtonClick = function(e) {
   }
   runButton.style.display = 'none';
   resetButton.style.display = 'inline';
+
+  document.getElementById('docsButton').disabled = false;
   Pond.execute();
 };
 
@@ -142,9 +119,9 @@ Pond.resetButtonClick = function(e) {
   var runButton = document.getElementById('runButton');
   runButton.style.display = 'inline';
   document.getElementById('resetButton').style.display = 'none';
+  document.getElementById('docsButton').disabled = true;
   Pond.reset();
 };
-
 
 /**
  * Execute the users' code.  Heaven help us...
