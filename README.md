@@ -1,4 +1,4 @@
-Updated to latest libraries and added tournament functionality.
+*Updated to latest libraries and added 4p tournament functionality.*
 
 # Google's Blockly Pond Multiplayer
 
