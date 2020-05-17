@@ -15,6 +15,11 @@ array-flatten@1.1.1:
   resolved "https://registry.yarnpkg.com/array-flatten/-/array-flatten-1.1.1.tgz#9a5f699051b1e7073328f2a008968b64ea2955d2"
   integrity sha1-ml9pkFGx5wczKPKgCJaLZOopVdI=
 
+autonomy@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/autonomy/-/autonomy-1.0.1.tgz#bcb40f7cbf59f7d8bf18a89186f3f409e36e87bc"
+  integrity sha1-vLQPfL9Z99i/GKiRhvP0CeNuh7w=
+
 bad-words@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/bad-words/-/bad-words-3.0.3.tgz#fa6fe18ffce3101a415193ebd8647c289b58b554"
@@ -143,6 +148,15 @@ express@^4.17.1:
     utils-merge "1.0.1"
     vary "~1.1.2"
 
+ffa@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/ffa/-/ffa-3.2.2.tgz#873b83212412d18270d7188795cb561f4566e191"
+  integrity sha512-BGchkpbTVatjOhbdnvFZwVnCWG8VBf6i0H72fuZHl/xGUegP/xzs5PmXnLyonbG7Eg5Zf8h+g3yuBc+sh2h4eg==
+  dependencies:
+    group "^1.0.0"
+    interlude "^1.1.0"
+    tournament "^3.1.0"
+
 finalhandler@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/finalhandler/-/finalhandler-1.1.2.tgz#b7e7d000ffd11938d0fdb053506f6ebabe9f587d"
@@ -165,6 +179,11 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
+
+group@^1.0.0:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/group/-/group-1.0.2.tgz#3a6a6fd93f9b17ede5fe5f5ecf2459727a3e3126"
+  integrity sha1-Ompv2T+bF+3l/l9ezyRZcno+MSY=
 
 http-errors@1.7.2:
   version "1.7.2"
@@ -204,6 +223,15 @@ inherits@2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
+
+interlude@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/interlude/-/interlude-1.1.1.tgz#973a5c8c958c61d943caf40c30736751b3a17655"
+  integrity sha1-lzpcjJWMYdlDyvQMMHNnUbOhdlU=
+  dependencies:
+    autonomy "^1.0.0"
+    operators "^0.1.6"
+    subset "^0.1.6"
 
 ipaddr.js@1.9.1:
   version "1.9.1"
@@ -263,6 +291,11 @@ on-finished@~2.3.0:
   integrity sha1-IPEzZIGwg811M3mSoWlxqi2QaUc=
   dependencies:
     ee-first "1.1.1"
+
+operators@^0.1.6:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/operators/-/operators-0.1.7.tgz#8c7fc9a8159f2814401231fcbc1ff899d60bafa9"
+  integrity sha1-jH/JqBWfKBRAEjH8vB/4mdYLr6k=
 
 parseurl@~1.3.3:
   version "1.3.3"
@@ -351,10 +384,22 @@ setprototypeof@1.1.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
   integrity sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow=
 
+subset@^0.1.6:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/subset/-/subset-0.1.7.tgz#67870a3337c5e90c78a71264de2861242a9eca5e"
+  integrity sha1-Z4cKMzfF6Qx4pxJk3ihhJCqeyl4=
+
 toidentifier@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha512-yaOH/Pk/VEhBWWTlhI+qXxDFXlejDGcQipMlyxda9nthulaxLZUNcUqFxokp0vcYnvteJln5FNQDRrxj3YcbVw==
+
+tournament@^3.1.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/tournament/-/tournament-3.2.0.tgz#a3d767ca2bcc531f352205a7c889b5d7dac77609"
+  integrity sha1-o9dnyivMUx81IgWnyIm119rHdgk=
+  dependencies:
+    interlude "^1.1.0"
 
 type-is@~1.6.17, type-is@~1.6.18:
   version "1.6.18"

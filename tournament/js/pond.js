@@ -22,15 +22,20 @@ goog.require('Pond.Visualization');
 
 
 /**
- * Optional callback function for when a game ends.
- * @type Function(number)
+ * Callback function for when a game ends.
+ * @param {number} survivors Number of avatars left alive.
+ * @suppress {duplicate}
  */
-Pond.endBattle = null;
+Pond.endBattle = function(survivors) {
+  Pond.Visualization.stop();  
+  var results = "// Round " + Pond.Battle.round + ": " + Pond.Battle.RANK.filter(function(avatar){return avatar.playable}).map(function(avatar){return avatar.name}).join(", ") + "\n";
+  BlocklyInterface.editor['setValue'](results + BlocklyInterface.getJsCode(), -1);
+};
 
 /**
  * Initialize the pond.  Called on page load.
  */
-Pond.init = function () {
+Pond.init = function() {
   BlocklyInterface.init();
   Pond.Visualization.init();
 
@@ -39,8 +44,8 @@ Pond.init = function () {
   BlocklyGames.bindClick('docsButton', Pond.docsButtonClick);
   BlocklyGames.bindClick('closeDocs', Pond.docsCloseClick);
 
-  BlocklyGames.bindClick('shiftButton', Pond.shiftButtonClick);
-  BlocklyGames.bindClick('uploadButton', Pond.uploadButtonClick);
+  BlocklyGames.bindClick('scoreButton', Pond.scoreButtonClick);
+  BlocklyGames.bindClick('startButton', Pond.startButtonClick);
 
   // Lazy-load the JavaScript interpreter.
   BlocklyInterface.importInterpreter();
@@ -54,20 +59,25 @@ Pond.init = function () {
  */
 Pond.isDocsVisible_ = false;
 
-Pond.uploadButtonClick = function (e) {
+Pond.scoreButtonClick = function (e) {
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
 
-  var playerTag = prompt('Enter your player tag (same as submitted to google forms):');
-  console.log("creating request for " + playerTag + " with code: " + BlocklyInterface.getJsCode()); 
-
-  if (playerTag === null) return;
-
+  var rounds = BlocklyInterface.getJsCode().split(/\r\n|\r|\n/).slice(0, Pond.Battle.round - 1);  
+  console.log(rounds);
+  var score = {};
+  rounds.forEach(function(round) {
+    var names = round.split(": ")[1].split(", ")
+    names.forEach(function(name, index) {
+      if (!score[name]) score[name] = 0;
+      score[name] += (Pond.Battle.round - 1) - index;
+    })
+  });
   var payload = {};
-  payload[playerTag] = BlocklyInterface.getJsCode();
+  payload['score'] = score;
 
-  var request = new Request('https://5754809c.ngrok.io/tournament',
+  var request = new Request('http://localhost:3000/score',
     {
       method: 'POST',
       headers: {
@@ -83,59 +93,52 @@ Pond.uploadButtonClick = function (e) {
     .then(function (response) {
       alert(response);     
     }).catch(function (error) {
-      alert("Oh noes, couldn't upload to tournament: " + error.message);
+      alert("Oh noes, something went wrong: " + error.message);
     });
 }
 
-Pond.shiftButtonClick = function (e) {
+Pond.startButtonClick = function (e) {
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
 
-  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
-    var newStartLoc = Pond.Battle.START_XY[3 - ((Pond.Battle.shiftNum + i) % 4)];
-    avatar.setStartLoc(newStartLoc);
-    console.log(avatar.name + " : " + Pond.Battle.shiftNum + " : (" + newStartLoc.x + "," + newStartLoc.y + ")");
-    avatar.reset();
-  }
 
-  Pond.Battle.shiftNum++;
+  var request = new Request('http://localhost:3000/start',
+    {
+      method: 'GET'
+    });
 
-  Pond.Visualization.display_();
+  fetch(request)
+    .then(function (response) {
+      return response.text();
+    })
+    .then(function (response) {
+      alert(response);     
+    }).catch(function (error) {
+      alert("Oh noes, something went wrong: " + error.message);
+    });
+
+    document.getElementById('startButton').disabled = true;
+    document.getElementById('startButton').classList.remove('secondary');
+    document.getElementById('runButton').disabled = false;
+    document.getElementById('runButton').classList.add('primary');
 }
 
 /**
  * Open the documentation frame.
  */
-Pond.docsButtonClick = function () {
-  if (Pond.isDocsVisible_) {
+Pond.docsButtonClick = function(e) {
+  if (BlocklyInterface.eventSpam(e)) {
     return;
   }
-  var origin = document.getElementById('docsButton');
-  var dialog = document.getElementById('dialogDocs');
-  var frame = document.getElementById('frameDocs');
-  var src = 'pond/docs.html?lang=' + BlocklyGames.LANG +
-    '&mode=' + BlocklyGames.LEVEL;
-  if (frame.src != src) {
-    frame.src = src;
-  }
 
-  function endResult() {
-    dialog.style.visibility = 'visible';
-    var border = document.getElementById('dialogBorder');
-    border.style.visibility = 'hidden';
-  }
-  Pond.isDocsVisible_ = true;
-  BlocklyDialogs.matchBorder_(origin, false, 0.2);
-  BlocklyDialogs.matchBorder_(dialog, true, 0.8);
-  // In 175ms show the dialog and hide the animated border.
-  setTimeout(endResult, 175);
+  Pond.Battle.stop();
 };
 
 /**
  * Close the documentation frame.
  */
-Pond.docsCloseClick = function () {
+Pond.docsCloseClick = function() {
   if (!Pond.isDocsVisible_) {
     return;
   }
@@ -158,13 +161,11 @@ Pond.docsCloseClick = function () {
  * Click the run button.  Start the Pond.
  * @param {!Event} e Mouse or touch event.
  */
-Pond.runButtonClick = function (e) {
+Pond.runButtonClick = function(e) {
   // Prevent double-clicks or double-taps.
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
-
-  document.getElementById('shiftButton').disabled = true;
   var runButton = document.getElementById('runButton');
   var resetButton = document.getElementById('resetButton');
   // Ensure that Reset button is at least as wide as Run button.
@@ -173,6 +174,11 @@ Pond.runButtonClick = function (e) {
   }
   runButton.style.display = 'none';
   resetButton.style.display = 'inline';
+
+  document.getElementById('docsButton').disabled = false;
+  document.getElementById('docsButton').classList.add('secondary');
+  document.getElementById('scoreButton').disabled = true;
+  document.getElementById('scoreButton').classList.remove('secondary');
   Pond.execute();
 };
 
@@ -180,26 +186,29 @@ Pond.runButtonClick = function (e) {
  * Click the reset button.  Reset the Pond.
  * @param {!Event} e Mouse or touch event.
  */
-Pond.resetButtonClick = function (e) {
+Pond.resetButtonClick = function(e) {
   // Prevent double-clicks or double-taps.
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
-  var uploadButton = document.getElementById('uploadButton');
-  uploadButton.disabled = true;
-  uploadButton.classList.remove('secondary');
-
-  document.getElementById('shiftButton').disabled = false;
   var runButton = document.getElementById('runButton');
   runButton.style.display = 'inline';
   document.getElementById('resetButton').style.display = 'none';
+  document.getElementById('docsButton').disabled = true;
+  document.getElementById('docsButton').classList.remove('secondary');
+
+  if (Pond.Battle.round > 3) {
+    document.getElementById('scoreButton').disabled = false;
+    document.getElementById('scoreButton').classList.add('secondary');
+  }
+
   Pond.reset();
 };
 
 /**
  * Execute the users' code.  Heaven help us...
  */
-Pond.execute = function () {
+Pond.execute = function() {
   if (!('Interpreter' in window)) {
     // Interpreter lazy loads and hasn't arrived yet.  Try again later.
     setTimeout(Pond.execute, 250);
@@ -214,7 +223,7 @@ Pond.execute = function () {
 /**
  * Reset the pond and kill any pending tasks.
  */
-Pond.reset = function () {
+Pond.reset = function() {
   Pond.Battle.reset();
   Pond.Visualization.reset();
 };
@@ -222,7 +231,7 @@ Pond.reset = function () {
 /**
  * Show the help pop-up.
  */
-Pond.showHelp = function () {
+Pond.showHelp = function() {
   var help = document.getElementById('help');
   var button = document.getElementById('helpButton');
   var style = {
@@ -231,6 +240,6 @@ Pond.showHelp = function () {
     top: '5em'
   };
   BlocklyDialogs.showDialog(help, button, true, true, style,
-    BlocklyDialogs.stopDialogKeyDown);
+      BlocklyDialogs.stopDialogKeyDown);
   BlocklyDialogs.startDialogKeyDown();
 };

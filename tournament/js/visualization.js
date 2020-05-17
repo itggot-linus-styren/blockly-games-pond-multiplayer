@@ -87,6 +87,7 @@ Pond.Visualization.reset = function() {
   var nameDivs = [];
   var healthDivs = [];
   for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+    if (!avatar.playable) continue;
     // Players 0+1 on first row, 2+3 or second, 4+5 on first, etc.
     var row = (Math.floor(i / 2) % 2) ? row2 : row1;
     // Assign a colour to each avatar.
@@ -143,6 +144,7 @@ Pond.Visualization.lastDelay = 0;
  * Start the visualization running.
  */
 Pond.Visualization.start = function() {
+  Pond.Visualization.reset();
   Pond.Visualization.display_();
   // Frame done.  Calculate the actual elapsed time and schedule the next frame.
   var now = Date.now();
@@ -197,6 +199,9 @@ Pond.Visualization.display_ = function() {
         Pond.Visualization.COLOURS.length) * Pond.Visualization.AVATAR_SIZE;
     if (avatar.dead) {
       ctx.globalAlpha = 0.25;
+    }
+    if (!avatar.playable) {
+      ctx.globalAlpha = 0;
     }
     if (avatar.speed > 0) {
       // Draw wake bubbles.
@@ -368,6 +373,7 @@ Pond.Visualization.display_ = function() {
 
   // Update the health bars.
   for (var i = 0, avatar; (avatar = avatars[i]); i++) {
+    if (!avatar.playable) continue;
     var div = avatar.visualizationHealth;
     div.parentNode.title = avatar.name + ': ' +
         Math.round(100 - avatar.damage) + '%';

@@ -106,7 +106,7 @@ Pond.Duck.init = function() {
   // Inject JS editor.
   var session = BlocklyAce.makeAceSession();
   session['on']('change', Pond.Duck.editorChanged);
-  var defaultCode = 'cannon(0, 70);';
+  var defaultCode = "//player1\nswim(270, 10);\n//player2\nswim(90, 10);";
   BlocklyInterface.editor['setValue'](defaultCode, -1);
 
   // Lazy-load the ESx-ES5 transpiler.
@@ -144,43 +144,41 @@ Pond.Duck.init = function() {
 
   var players = [
     {
-      start: new Blockly.utils.Coordinate(20, 80),
       damage: 0,
-      name: 'Pond_myName',
-      code: null
+      name: 'Player 1',
+      code: null,
+      num: 1,
     },
     {
-      start: new Blockly.utils.Coordinate(80, 80),
       damage: 0,
-      name: 'Pond_rookName',
-      code: 'playerRook'
+      name: 'Player 2',
+      code: null,
+      num: 2,
     },
     {
-      start: new Blockly.utils.Coordinate(20, 20),
       damage: 0,
-      name: 'Pond_counterName',
-      code: 'playerCounter'
+      name: 'Player 3',
+      code: null,
+      num: 3,
     },
     {
-      start: new Blockly.utils.Coordinate(80, 20),
       damage: 0,
-      name: 'Pond_sniperName',
-      code: 'playerSniper'
+      name: 'Player 4',
+      code: null,
+      num: 4,
     }
   ];
 
   for (var playerData, i = 0; (playerData = players[i]); i++) {
-    if (playerData.code) {
-      var div = document.getElementById(playerData.code);
-      var code = div.textContent;
-    } else {
-      var code = BlocklyInterface.getJsCode;
-    }
-    var name = BlocklyGames.getMsg(playerData.name);
-    Pond.Battle.addAvatar(name, code, playerData.start, playerData.damage);
+    var name = playerData.name;
+    Pond.Battle.addAvatar(name, playerData.num, BlocklyInterface.getJsCode, null, playerData.damage);
   }
+
+  Blockly.utils.dom.addClass(Pond.Duck.editorTabs[0], 'tab-disabled');
+  BlocklyInterface.blocksDisabled = true;
+  
   Pond.reset();
-  Pond.Duck.changeTab(0);
+  Pond.Duck.changeTab(1); // disable blocks
   Pond.Duck.ignoreEditorChanges_ = false;
 };
 
@@ -204,7 +202,7 @@ Pond.Duck.changeTab = function(index) {
     div.style.visibility = (index == BLOCKS) ? 'visible' : 'hidden';
   }
   // Synchronize the documentation popup.
-  document.getElementById('docsButton').disabled = false;
+  //document.getElementById('docsButton').disabled = false;
   BlocklyGames.LEVEL = (index == BLOCKS) ? 11 : 12;
   if (Pond.isDocsVisible_) {
     var frame = document.getElementById('frameDocs');

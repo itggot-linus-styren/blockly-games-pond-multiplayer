@@ -28,8 +28,9 @@ goog.require('BlocklyInterface');
  * @param {!Pond.Battle} battle The battle featuring the avatar.
  * @constructor
  */
-Pond.Avatar = function(name, code, startLoc, startDamage, battle) {
+Pond.Avatar = function(name, num, code, startLoc, startDamage, battle) {
   this.name = name;
+  this.num = num;
   this.code_ = code;
   this.startLoc_ = startLoc;
   this.startDamage_ = startDamage || 0;
@@ -40,6 +41,11 @@ Pond.Avatar = function(name, code, startLoc, startDamage, battle) {
 };
 
 /**
+ * What number is this player (player order)?
+ */
+Pond.Avatar.prototype.num = -1;
+
+/**
  * Has this avatar fully loaded and started playing?
  */
 Pond.Avatar.prototype.started = false;
@@ -47,7 +53,12 @@ Pond.Avatar.prototype.started = false;
 /**
  * Has the avatar been killed?
  */
-Pond.Avatar.prototype.dead = false;
+Pond.Avatar.prototype.dead = true;
+
+/**
+ * Is this avatar part of the game?
+ */
+Pond.Avatar.prototype.playable = false;
 
 /**
  * Damage of this avatar (0 = perfect, 100 = dead).
@@ -111,6 +122,7 @@ Pond.Avatar.prototype.reset = function() {
   delete this.desiredSpeed;
   delete this.lastMissile;
 
+  this.playable = false;
   this.damage = this.startDamage_;
   this.setStartLoc(this.startLoc_);
   this.interpreter = null;
@@ -123,6 +135,54 @@ Pond.Avatar.prototype.initInterpreter = function() {
   var code = this.code_;
   if (typeof code == 'function') {
     code = code();
+    console.log(code);
+    var appendPlayerCode = false; // ecmascript 6 not my friend :(
+    var playerCode = "";
+    var lines = code.replace(/\r/g, "").split('\n');
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var match = /^\/\/player(.+):\s*(.+)/.exec(line);
+      if (match) {
+        if (match[1] == this.num) {
+          this.playable = true;
+          this.name = match[2];
+          this.dead = false;
+          appendPlayerCode = true;
+        } else {          
+          appendPlayerCode = false;
+        }
+      }
+      else if (appendPlayerCode) playerCode += line + '\n';
+    }
+
+    code = playerCode;
+    /*
+    var codes = code.split("//Player:player 2");
+    if(codes.length > 1) {
+        if(this.name == 'Player 2')
+            code = codes[1].trim();
+        else
+            code = codes[0].trim();
+    }*/
+
+    /*
+    //player:Player 1
+    swim(270, 100);
+    while (true) {cannon(0, 60)}
+    //player:Player 2
+    swim(270, 100);
+
+//player1:Linus
+swim(270, 100);
+while (true) {cannon(0, 60)}
+//player2:Bert
+swim(270, 100);
+//player3:Samuel
+swim(270, 100);
+//player4:Orvar
+swim(270, 100);
+    */
+    console.log(this.name + " : " + code);
   } else if (typeof code != 'string') {
     throw Error('Duck "' + this.name + '" has invalid code: ' + code);
   }

@@ -106,7 +106,7 @@ Pond.Battle.ticks = 0;
 /**
  * Time limit of game (in milliseconds).
  */
-Pond.Battle.TIME_LIMIT = 5 * 60 * 1000;
+Pond.Battle.TIME_LIMIT = 2 * 60 * 1000
 
 /**
  * Callback function for end of game.
@@ -114,7 +114,15 @@ Pond.Battle.TIME_LIMIT = 5 * 60 * 1000;
  */
 Pond.Battle.doneCallback_ = null;
 
-Pond.Battle.shiftNum = 0;
+/**
+ * Next round to play.
+ */
+Pond.Battle.round = 1;
+
+/**
+ * The round the game started in.
+ */
+Pond.Battle.startRound_ = 1;
 
 /**
  * Starting positions for avatars.
@@ -153,12 +161,12 @@ Pond.Battle.reset = function() {
  * @param {Blockly.utils.Coordinate} opt_startLoc Start location.
  * @param {?number} opt_startDamage Initial damage to avatar (0-100, default 0).
  */
-Pond.Battle.addAvatar = function(name, code, opt_startLoc, opt_startDamage) {
+Pond.Battle.addAvatar = function(name, num, code, opt_startLoc, opt_startDamage) {
   if (!opt_startLoc) {
-    var i = Pond.Battle.AVATARS.length;
+    var i = Pond.Battle.AVATARS.length % 4;    
     opt_startLoc = Pond.Battle.START_XY[i];
   }
-  var avatar = new Pond.Avatar(name, code, opt_startLoc, opt_startDamage,
+  var avatar = new Pond.Avatar(name, num, code, opt_startLoc, opt_startDamage,
                                Pond.Battle);
   Pond.Battle.AVATARS.push(avatar);
 };
@@ -167,17 +175,24 @@ Pond.Battle.addAvatar = function(name, code, opt_startLoc, opt_startDamage) {
  * Start the battle executing.  Avatars should already be added.
  * @param {Function} doneCallback Function to call when game ends.
  */
-Pond.Battle.start = function(doneCallback) {
+Pond.Battle.start = function(doneCallback) {  
   Pond.Battle.doneCallback_ = doneCallback;
   Pond.Battle.endTime_ = Date.now() + Pond.Battle.TIME_LIMIT;
   console.log('Starting battle with ' + Pond.Battle.AVATARS.length +
               ' avatars.');
+  if (!BlocklyInterface.getJsCode().includes("// Round")) {
+    console.log("New challengers detected!");
+    Pond.Battle.round = 1;
+  }
+  Pond.Battle.startRound_ = Pond.Battle.round;
   for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+    console.log(Pond.Battle.round);
+    var index = (Pond.Battle.round + avatar.num - 1) % 4;
+    var newStartLoc = Pond.Battle.START_XY[index];
+    avatar.setStartLoc(newStartLoc);
+    console.log(avatar.name + " : " + index + " : (" + newStartLoc.x + "," + newStartLoc.y + ")");
     try {
       avatar.initInterpreter();
-      var uploadButton = document.getElementById('uploadButton');
-      uploadButton.disabled = false;
-      uploadButton.classList.add('secondary');
     } catch (e) {
       console.log(avatar + ' fails to load: ' + e);
       avatar.die();
@@ -196,7 +211,15 @@ Pond.Battle.update = function() {
   Pond.Battle.updateMissiles_();
   // Update state of all avatars.
   Pond.Battle.updateAvatars_();
-  if (Pond.Battle.AVATARS.length <= Pond.Battle.RANK.length + 1) {
+
+  var numLeft = 0;
+  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+    if (!avatar.dead) {
+      numLeft += 1;
+    }
+  }
+
+  if (numLeft < 2 || Pond.Battle.AVATARS.length <= Pond.Battle.RANK.length + 1) {
     // Game over because there are less than two avatars.
     // Schedule the game to end in a second.
     Pond.Battle.endTime_ = Math.min(Pond.Battle.endTime_, Date.now() + 1000);
@@ -212,6 +235,7 @@ Pond.Battle.update = function() {
 };
 
 Pond.Battle.stop = function() {
+  if (Pond.Battle.round != Pond.Battle.startRound_) return;
   // Add the survivors to the ranks based on their damage.
   var survivors = [];
   for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
@@ -224,8 +248,10 @@ Pond.Battle.stop = function() {
   while (survivors.length) {
     Pond.Battle.RANK.unshift(survivors.pop());
   }
+
   // Fire any callback.
   Pond.Battle.doneCallback_ && Pond.Battle.doneCallback_(survivorCount);
+  Pond.Battle.round++;
 };
 
 /**
@@ -338,9 +364,6 @@ Pond.Battle.updateInterpreters_ = function() {
         avatar.interpreter.step();
       } catch (e) {
         console.log(avatar + ' throws an error: ' + e);
-        var uploadButton = document.getElementById('uploadButton');
-        uploadButton.disabled = true;
-        uploadButton.classList.remove('secondary');
         avatar.die();
       }
       Pond.Battle.currentAvatar = null;
