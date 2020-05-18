@@ -1,181 +1,70 @@
 
-//player1:2
-/* rabbit */
-// rabbit runs around the field, randomly and never fires; use as a target.
+//player1:Super Upgraded Skynet Rabid Mother ducker
+var deg, width, amountOfSteps, degLastFoundDuck, Scan_right, currentDeg, moveIteration, shoot_right, scan2, dist, degStep, iteration;
 
-/* go - go to the point specified */
-function go (dest_x, dest_y) {
-  var course = plot_course(dest_x, dest_y);
-  while (distance(getX(), getY(), dest_x, dest_y) > 5) {
-    drive(course, 25);
-  }
-  while (speed() > 0) {
-    drive(course, 0);
+// Describe this function...
+function Scan_shoot(deg) {
+  Scan_right = scan(deg);
+  shoot_right = Infinity > Scan_right;
+  if (shoot_right) {
+    cannon(deg, Scan_right);
   }
 }
 
-/* distance forumula. */
-function distance(x1, y1, x2, y2) {
-  var x = x1 - x2;
-  var y = y1 - y2;
-  return Math.sqrt((x * x) + (y * y));
-}
-
-/* plot_course - figure out which heading to go. */
-function plot_course(xx, yy) {
-  var d;
-  var curx = getX();
-  var cury = getY();
-  var x = curx - xx;
-  var y = cury - yy;
-
-  if (x == 0) {
-    if (yy > cury) {
-      d = 90;
-    } else {
-      d = 270;
+// Describe this function...
+function Find_duck(deg, width, amountOfSteps) {
+  currentDeg = deg;
+  scan2 = scan(currentDeg);
+  degStep = (width / amountOfSteps) / 2;
+  iteration = 1;
+  while (scan2 == Infinity && iteration <= amountOfSteps) {
+    currentDeg = deg - degStep * iteration;
+    scan2 = scan(currentDeg);
+    if (scan2 == Infinity) {
+      currentDeg = deg + degStep * iteration;
+      scan2 = scan(currentDeg);
     }
-  } else {
-    if (yy < cury) {
-      if (xx > curx) {
-        d = 360 + Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    } else {
-      if (xx > curx) {
-        d = Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    }
+    iteration += 1;
   }
-  return d;
+  if (scan2 == Infinity) {
+    currentDeg = Infinity;
+  }
+  return currentDeg;
 }
 
+
+degLastFoundDuck = Math.random() * 360;
+moveIteration = 100;
+dist = 0;
 while (true) {
-  // Go somewhere in the field.
-  var x = Math.random() * 100;
-  var y = Math.random() * 100;
-  go(x, y);
-}
-//player2:5
-/* rabbit */
-// rabbit runs around the field, randomly and never fires; use as a target.
-
-/* go - go to the point specified */
-function go (dest_x, dest_y) {
-  var course = plot_course(dest_x, dest_y);
-  while (distance(getX(), getY(), dest_x, dest_y) > 5) {
-    drive(course, 25);
+  degLastFoundDuck = Find_duck(degLastFoundDuck, 360, 90);
+  if (degLastFoundDuck == Infinity) {
+    degLastFoundDuck = Math.random() * 360;
   }
-  while (speed() > 0) {
-    drive(course, 0);
+  dist = scan(degLastFoundDuck);
+  if (dist != Infinity) {
+    cannon(degLastFoundDuck, dist);
   }
-}
-
-/* distance forumula. */
-function distance(x1, y1, x2, y2) {
-  var x = x1 - x2;
-  var y = y1 - y2;
-  return Math.sqrt((x * x) + (y * y));
-}
-
-/* plot_course - figure out which heading to go. */
-function plot_course(xx, yy) {
-  var d;
-  var curx = getX();
-  var cury = getY();
-  var x = curx - xx;
-  var y = cury - yy;
-
-  if (x == 0) {
-    if (yy > cury) {
-      d = 90;
+  if (moveIteration > 25) {
+    if (dist > 75) {
+      swim(degLastFoundDuck);
     } else {
-      d = 270;
+      swim(Math.random() * 360);
     }
-  } else {
-    if (yy < cury) {
-      if (xx > curx) {
-        d = 360 + Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    } else {
-      if (xx > curx) {
-        d = Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    }
+    moveIteration = 0;
   }
-  return d;
+  moveIteration += 1;
 }
 
+//player2:Aningen Virrig
+var swim_direction;
+
+
+swim_direction = 360 * Math.random();
 while (true) {
-  // Go somewhere in the field.
-  var x = Math.random() * 100;
-  var y = Math.random() * 100;
-  go(x, y);
-}
-//player3:8
-/* rabbit */
-// rabbit runs around the field, randomly and never fires; use as a target.
-
-/* go - go to the point specified */
-function go (dest_x, dest_y) {
-  var course = plot_course(dest_x, dest_y);
-  while (distance(getX(), getY(), dest_x, dest_y) > 5) {
-    drive(course, 25);
-  }
-  while (speed() > 0) {
-    drive(course, 0);
-  }
+  swim(swim_direction, 100);
+  swim_direction = 360 * Math.random();
 }
 
-/* distance forumula. */
-function distance(x1, y1, x2, y2) {
-  var x = x1 - x2;
-  var y = y1 - y2;
-  return Math.sqrt((x * x) + (y * y));
-}
-
-/* plot_course - figure out which heading to go. */
-function plot_course(xx, yy) {
-  var d;
-  var curx = getX();
-  var cury = getY();
-  var x = curx - xx;
-  var y = cury - yy;
-
-  if (x == 0) {
-    if (yy > cury) {
-      d = 90;
-    } else {
-      d = 270;
-    }
-  } else {
-    if (yy < cury) {
-      if (xx > curx) {
-        d = 360 + Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    } else {
-      if (xx > curx) {
-        d = Math.atan_deg(y / x);
-      } else {
-        d = 180 + Math.atan_deg(y / x);
-      }
-    }
-  }
-  return d;
-}
-
-while (true) {
-  // Go somewhere in the field.
-  var x = Math.random() * 100;
-  var y = Math.random() * 100;
-  go(x, y);
-}
+//player3:rabbit dumb 4
+cannon(Math.random(), 70);

@@ -8,7 +8,7 @@ var Filter = require('bad-words'),
 var app = express()
 var port = 3000;
 
-var ipToPlayer = {}
+var playerList = []
 var tournamentStarted = false;
 var numParticipants = 0;
 var ffa = null;
@@ -16,6 +16,24 @@ var ffa = null;
 var currentMatchID = null;
 var currentMatchNum = 0;
 var currentPlayers = [];
+
+if (!fs.existsSync("bots/")){
+    fs.mkdirSync("bots/");
+}
+
+let files = fs.readdirSync('bots/');
+files = files.filter((f) => f.includes(".js"));
+
+for (const fName of files) { 
+    let pId = fName.split('.')[0] 
+    var bot = fs.readFileSync("bots/" + fName, "utf8");
+    var sourceLines = bot.split(/\r\n|\r|\n/);
+    playerList.push({
+        playerTag: sourceLines[0].split(":")[1],
+        pId: pId,
+        code: sourceLines.slice(1).join("\n")
+    });
+}
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
@@ -70,7 +88,7 @@ function advanceTournament() {
     }
 }
 
-function standingsFor(players, useIndex=false) {
+function finalStandings(players, useIndex=false) {
     var fres = ffa.results();
     return players
         .sort(
@@ -92,26 +110,6 @@ function standingsFor(players, useIndex=false) {
             (useIndex ? ", wins " + fres.find((result) => result.seed == player.pId).wins : "")
         )
         .join("\n");
-}
-
-function finalStandings() {
-    listOfPlayers = [];
-
-    if (Object.keys(ipToPlayer) == numParticipants) {
-        listOfPlayers = Object.values(ipToPlayer);
-    } else { // parse from bots files
-        for (var pId = 1; pId <= numParticipants; pId++) {
-            var bot = fs.readFileSync("bots/" + pId + ".js", "utf8");
-            var sourceLines = bot.split(/\r\n|\r|\n/);
-            listOfPlayers.push({
-                playerTag: sourceLines[0].split(":")[1],
-                pId: pId,
-                code: sourceLines.slice(1).join("\n")
-            });
-        }
-    }
-
-    return standingsFor(listOfPlayers, true);
 }
 
 app.post('/score', function (req, res) {
@@ -153,11 +151,11 @@ app.post('/score', function (req, res) {
 
     if (ffa.isDone()) {
         console.log("Tournament is done");
-        res.send("Final standings:\n" + finalStandings());
+        res.send("Final standings:\n" + finalStandings(playerList, true));
     } else {
-        var standings = standingsFor(currentPlayers);
+        var standings = finalStandings(currentPlayers);
         console.log("[" + currentMatchNum + "/" + ffa.matches.length + "]: " + standings.replace(/\r\n|\r|\n/g, ', '));
-        res.send("Scored match [" + currentMatchNum + "/" + ffa.matches.length + "] " + currentMatchID + ", results:\n" + standings);
+        res.send("Scored match [" + currentMatchNum + "/" + ffa.matches.length + "] " + currentMatchID + ", results:\n" + Object.entries(req.body.score).map(([name, score]) => name + ": " + score));
         advanceTournament();
     }
 });
@@ -173,7 +171,7 @@ app.get('/start', function (req, res) {
         return;
     }
 
-    numParticipants = Object.keys(ipToPlayer).length;
+    numParticipants = playerList.length;
 
     if (numParticipants < 9) {
         res.status(400).send('Too few participants (< 9).');
@@ -202,8 +200,6 @@ app.post('/tournament', function (req, res) {
         return;
     }
 
-    var ip = '' + Math.floor(Math.random() * 10000000); //req.headers['x-forwarded-for'];
-
     if (!req.body || Object.keys(req.body).length > 1) {
         console.dir(req.body);
         res.status(400).send('Sorry, invalid format of payload.');
@@ -218,33 +214,30 @@ app.post('/tournament', function (req, res) {
         return;
     }
 
-    if (!playerInFile(playerTag)) {
-        console.log("Not admitting " + playerTag);
-        res.status(400).send("Sorry, couldn't find " + playerTag + " in list of applied participants :(");
-        return;
-    }
-
-    if (!ipToPlayer[ip]) {
-        if (Object.values(ipToPlayer).find((p) => p.playerTag == playerTag)) {
-            console.warn("CATFISHING DETECTED!!: " + playerTag);
-            res.status(400).send("Sorry, someone has already used this tag!");
+    let player = playerList.find((p) => p.playerTag == playerTag)
+    if (player) {
+        console.log("Updating existing bot [" + player.pId + "]: " + player.playerTag)
+    } else {
+        if (!playerInFile(playerTag)) {
+            console.log("Not admitting " + playerTag);
+            res.status(400).send("Sorry, couldn't find " + playerTag + " in list of applied participants :(");
             return;
         }
 
-        ipToPlayer[ip] = {
-            pId: Object.keys(ipToPlayer).length + 1,
-            playerTag: playerTag
+        player = {
+            pId: playerList.length + 1,
+            playerTag,
+            code
         }
-    } else if (ipToPlayer[ip].playerTag != playerTag) {
-        res.status(400).send("Sorry, only one bot per player!");
-        return;
-    }
+    
+        playerList.push(player)
+    }    
 
     code = req.body[playerTag];
     code = filter.clean(code.replace(/\/\/player/g, '// Player'));
 
-    fs.writeFileSync("bots/" + ipToPlayer[ip].pId + ".js", "//player:" + playerTag + "\n" + code);
-    console.log("[" + ip + "] Updated participant " + playerTag + ", code length: " + code.trim().split(/\r\n|\r|\n/).length);
+    fs.writeFileSync("bots/" + player.pId + ".js", "//player:" + playerTag + "\n" + code);
+    console.log("[" + req.headers['x-forwarded-for'] + "] Updated participant " + playerTag + ", code length: " + code.trim().split(/\r\n|\r|\n/).length);
     res.send('Bot code for ' + playerTag + ' has been updated!');
 })
 
