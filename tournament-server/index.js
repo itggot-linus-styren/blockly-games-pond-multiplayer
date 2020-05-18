@@ -36,7 +36,7 @@ function playerInFile(playerTag) {
         hasPlayer = true;
     }
 
-    return hasPlayer;
+    return true//hasPlayer;
 }
 
 function advanceTournament() {
@@ -173,7 +173,7 @@ app.get('/start', function (req, res) {
         return;
     }
 
-    numParticipants = 9;//Object.keys(ipToPlayer).length;
+    numParticipants = Object.keys(ipToPlayer).length;
 
     if (numParticipants < 9) {
         res.status(400).send('Too few participants (< 9).');
@@ -202,7 +202,7 @@ app.post('/tournament', function (req, res) {
         return;
     }
 
-    var ip = /*'' + Math.floor(Math.random() * 10000000); */req.headers['x-forwarded-for'];
+    var ip = '' + Math.floor(Math.random() * 10000000); //req.headers['x-forwarded-for'];
 
     if (!req.body || Object.keys(req.body).length > 1) {
         console.dir(req.body);
