@@ -59,9 +59,7 @@ function playerInFile(playerTag) {
 
 function advanceTournament() {
     for (const [iMatch, match] of ffa.matches.entries()) {
-        if (ffa.isPlayable(match) && !match.m) {
-            console.log("Playing match " + JSON.stringify(match));
-
+        if (ffa.isPlayable(match) && !match.m) {            
             currentPlayers = []
 
             match.p.forEach((pId) => {
@@ -73,6 +71,8 @@ function advanceTournament() {
                     code: sourceLines.slice(1).join("\n")
                 });
             })
+
+            console.log("Playing match " + JSON.stringify(match) + " players:\n" + currentPlayers.reduce((str, p, index) => `${str}\tp${index + 1}: ${p.playerTag}${index < currentPlayers.length -1 ? "\n" : ""}`, ""));
 
             combinedCode = "";
             currentPlayers.forEach((player, order) => {
@@ -150,12 +150,13 @@ app.post('/score', function (req, res) {
     }    
 
     if (ffa.isDone()) {
-        console.log("Tournament is done");
+        console.log("Tournament is done. Winner: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
         res.send("Final standings:\n" + finalStandings(playerList, true));
     } else {
+        console.log("Leader: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
         var standings = finalStandings(currentPlayers);
         console.log("[" + currentMatchNum + "/" + ffa.matches.length + "]: " + standings.replace(/\r\n|\r|\n/g, ', '));
-        res.send("Scored match [" + currentMatchNum + "/" + ffa.matches.length + "] " + currentMatchID + ", results:\n" + Object.entries(req.body.score).map(([name, score]) => name + ": " + score));
+        res.send("Scored match [" + currentMatchNum + "/" + ffa.matches.length + "] " + currentMatchID + ", results:\n" + Object.entries(req.body.score).sort(([_na, scoreA], [_nb, scoreB]) => scoreB - scoreA).map(([name, score]) => name + ": " + score).join("\n"));
         advanceTournament();
     }
 });
@@ -183,7 +184,7 @@ app.get('/start', function (req, res) {
 
     advanceTournament();
 
-    console.log("starting tournament: " + numParticipants);
+    console.log("starting tournament with num players: " + numParticipants);
     res.send("Starting tournament now with " + numParticipants + " participants!");
 });
 

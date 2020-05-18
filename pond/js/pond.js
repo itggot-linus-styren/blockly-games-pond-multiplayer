@@ -185,9 +185,8 @@ Pond.resetButtonClick = function (e) {
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
-  var uploadButton = document.getElementById('uploadButton');
-  uploadButton.disabled = true;
-  uploadButton.classList.remove('secondary');
+  
+  document.getElementById('uploadButton').style.display = 'none';
 
   document.getElementById('shiftButton').disabled = false;
   var runButton = document.getElementById('runButton');

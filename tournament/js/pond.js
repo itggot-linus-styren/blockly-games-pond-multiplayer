@@ -51,6 +51,8 @@ Pond.init = function() {
   BlocklyInterface.importInterpreter();
   // Lazy-load the syntax-highlighting.
   BlocklyInterface.importPrettify();
+
+  Pond.Visualization.display_();
 };
 
 /**
@@ -225,7 +227,7 @@ Pond.execute = function() {
  */
 Pond.reset = function() {
   Pond.Battle.reset();
-  Pond.Visualization.reset();
+  //Pond.Visualization.reset();
 };
 
 /**

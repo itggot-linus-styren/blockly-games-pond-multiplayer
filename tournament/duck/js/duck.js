@@ -106,7 +106,7 @@ Pond.Duck.init = function() {
   // Inject JS editor.
   var session = BlocklyAce.makeAceSession();
   session['on']('change', Pond.Duck.editorChanged);
-  var defaultCode = "//player1\nswim(270, 10);\n//player2\nswim(90, 10);";
+  var defaultCode = "//player1:1\nswim(270, 10);\nscan(0, 10);\n//player2:2\nswim(90, 10);\nscan(0, 10);";
   BlocklyInterface.editor['setValue'](defaultCode, -1);
 
   // Lazy-load the ESx-ES5 transpiler.

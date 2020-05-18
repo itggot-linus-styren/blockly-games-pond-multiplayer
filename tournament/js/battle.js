@@ -140,6 +140,8 @@ Pond.Battle.START_XY = [
   new Blockly.utils.Coordinate(50, 49)
 ];
 
+Pond.Battle.allAvatars = []
+
 /**
  * Stop and reset the battle.
  */
@@ -169,6 +171,7 @@ Pond.Battle.addAvatar = function(name, num, code, opt_startLoc, opt_startDamage)
   var avatar = new Pond.Avatar(name, num, code, opt_startLoc, opt_startDamage,
                                Pond.Battle);
   Pond.Battle.AVATARS.push(avatar);
+  Pond.Battle.allAvatars.push(avatar);
 };
 
 /**
@@ -185,7 +188,9 @@ Pond.Battle.start = function(doneCallback) {
     Pond.Battle.round = 1;
   }
   Pond.Battle.startRound_ = Pond.Battle.round;
-  for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
+  Pond.Battle.AVATARS = Pond.Battle.allAvatars.slice();
+  for (var i = Pond.Battle.AVATARS.length - 1, avatar; i >= 0; i--) {
+    avatar = Pond.Battle.AVATARS[i]
     console.log(Pond.Battle.round);
     var index = (Pond.Battle.round + avatar.num - 1) % 4;
     var newStartLoc = Pond.Battle.START_XY[index];
@@ -197,7 +202,10 @@ Pond.Battle.start = function(doneCallback) {
       console.log(avatar + ' fails to load: ' + e);
       avatar.die();
     }
+
+    if (!avatar.playable) Pond.Battle.AVATARS.splice(i, 1)
   }
+  Pond.Visualization.reset();
   Pond.Battle.update();
 };
 

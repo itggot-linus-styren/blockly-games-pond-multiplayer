@@ -175,9 +175,7 @@ Pond.Battle.start = function(doneCallback) {
   for (var i = 0, avatar; (avatar = Pond.Battle.AVATARS[i]); i++) {
     try {
       avatar.initInterpreter();
-      var uploadButton = document.getElementById('uploadButton');
-      uploadButton.disabled = false;
-      uploadButton.classList.add('secondary');
+      document.getElementById('uploadButton').style.display = 'inline';
     } catch (e) {
       console.log(avatar + ' fails to load: ' + e);
       avatar.die();
@@ -338,9 +336,7 @@ Pond.Battle.updateInterpreters_ = function() {
         avatar.interpreter.step();
       } catch (e) {
         console.log(avatar + ' throws an error: ' + e);
-        var uploadButton = document.getElementById('uploadButton');
-        uploadButton.disabled = true;
-        uploadButton.classList.remove('secondary');
+        document.getElementById('uploadButton').style.display = 'none';
         avatar.die();
       }
       Pond.Battle.currentAvatar = null;
