@@ -67,7 +67,7 @@ Pond.uploadButtonClick = function (e) {
   var payload = {};
   payload[playerTag] = BlocklyInterface.getJsCode();
 
-  var request = new Request('https://b2186b3f.ngrok.io/tournament',
+  var request = new Request('https://2ee5da951066.ngrok.io/tournament',
     {
       method: 'POST',
       headers: {

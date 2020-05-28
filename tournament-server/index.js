@@ -225,6 +225,9 @@ app.post('/tournament', function (req, res) {
             return;
         }
 
+        code = req.body[playerTag];
+        code = filter.clean(code.replace(/\/\/player/g, '// Player'));
+
         player = {
             pId: playerList.length + 1,
             playerTag,
