@@ -214,6 +214,7 @@ app.get('/locklocal', function (req, res) {
   }
 
   localMode = true;
+  res.send("localMode = true");
 });
 
 app.get('/unlocklocal', function (req, res) {
@@ -223,6 +224,7 @@ app.get('/unlocklocal', function (req, res) {
   }
 
   localMode = false;
+  res.send("localMode = false");
 });
 
 app.get('/start', function (req, res) {
