@@ -24,8 +24,8 @@ jobs:
           TARGET: ${{ secrets.REMOTE_TARGET }}
           EXCLUDE: "/dist/, /node_modules/"
     - name: Install SSH private key
-        run: |
-          echo $SSH_PRIVATE_KEY > ~/.ssh/id_rsa
-          ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST}} 'echo Hello World'
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+      run: |
+        echo $SSH_PRIVATE_KEY > ~/.ssh/id_rsa
+        ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST}} 'echo Hello World'
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
