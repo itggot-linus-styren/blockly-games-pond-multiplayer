@@ -161,7 +161,7 @@ app.post('/score', function (req, res) {
     }
 });
 
-app.get('/', express.static('..'))
+app.use('/', express.static('..'))
 
 app.get('/start', function (req, res) {
     if (process.env.NODE_ENV !== 'remote' && (req.headers['x-forwarded-for'] || !["::ffff:127.0.0.1", "::1"].includes(req.connection.remoteAddress))) {
