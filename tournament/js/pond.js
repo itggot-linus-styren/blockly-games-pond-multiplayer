@@ -27,7 +27,7 @@ goog.require('Pond.Visualization');
  * @suppress {duplicate}
  */
 Pond.endBattle = function(survivors) {
-  Pond.Visualization.stop();  
+  Pond.Visualization.stop();
   var results = "// Round " + Pond.Battle.round + ": " + Pond.Battle.RANK.filter(function(avatar){return avatar.playable}).map(function(avatar){return avatar.name}).join(", ") + "\n";
   BlocklyInterface.editor['setValue'](results + BlocklyInterface.getJsCode(), -1);
 };
@@ -66,7 +66,7 @@ Pond.scoreButtonClick = function (e) {
     return;
   }
 
-  var rounds = BlocklyInterface.getJsCode().split(/\r\n|\r|\n/).slice(0, Pond.Battle.round - 1);  
+  var rounds = BlocklyInterface.getJsCode().split(/\r\n|\r|\n/).slice(0, Pond.Battle.round - 1);
   console.log(rounds);
   var score = {};
   rounds.forEach(function(round) {
@@ -79,7 +79,7 @@ Pond.scoreButtonClick = function (e) {
   var payload = {};
   payload['score'] = score;
 
-  var request = new Request('http://localhost:3000/score',
+  var request = new Request('http://pond-te4.duckdns.org/score',
     {
       method: 'POST',
       headers: {
@@ -93,7 +93,7 @@ Pond.scoreButtonClick = function (e) {
       return response.text();
     })
     .then(function (response) {
-      alert(response);     
+      alert(response);
     }).catch(function (error) {
       alert("Oh noes, something went wrong: " + error.message);
     });
@@ -105,7 +105,7 @@ Pond.startButtonClick = function (e) {
   }
 
 
-  var request = new Request('http://localhost:3000/start',
+  var request = new Request('http://pond-te4.duckdns.org/start',
     {
       method: 'GET'
     });
@@ -115,7 +115,7 @@ Pond.startButtonClick = function (e) {
       return response.text();
     })
     .then(function (response) {
-      alert(response);     
+      alert(response);
     }).catch(function (error) {
       alert("Oh noes, something went wrong: " + error.message);
     });

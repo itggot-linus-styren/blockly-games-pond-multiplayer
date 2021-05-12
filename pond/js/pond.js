@@ -60,14 +60,14 @@ Pond.uploadButtonClick = function (e) {
   }
 
   var playerTag = prompt('Enter your player tag (same as submitted to google forms):');
-  console.log("creating request for " + playerTag + " with code: " + BlocklyInterface.getJsCode()); 
+  console.log("creating request for " + playerTag + " with code: " + BlocklyInterface.getJsCode());
 
   if (playerTag === null) return;
 
   var payload = {};
   payload[playerTag] = BlocklyInterface.getJsCode();
 
-  var request = new Request('https://2ee5da951066.ngrok.io/tournament',
+  var request = new Request('https://pond-te4.duckdns.org/tournament',
     {
       method: 'POST',
       headers: {
@@ -81,7 +81,7 @@ Pond.uploadButtonClick = function (e) {
       return response.text();
     })
     .then(function (response) {
-      alert(response);     
+      alert(response);
     }).catch(function (error) {
       alert("Oh noes, couldn't upload to tournament: " + error.message);
     });
@@ -185,7 +185,7 @@ Pond.resetButtonClick = function (e) {
   if (BlocklyInterface.eventSpam(e)) {
     return;
   }
-  
+
   document.getElementById('uploadButton').style.display = 'none';
 
   document.getElementById('shiftButton').disabled = false;
