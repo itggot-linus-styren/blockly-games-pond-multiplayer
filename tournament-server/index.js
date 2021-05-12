@@ -1,6 +1,7 @@
 var fs = require('fs')
 var FFA = require('ffa')
 var express = require('express')
+var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 var Filter = require('bad-words'),
   filter = new Filter()
@@ -20,7 +21,7 @@ var currentPlayers = [];
 var masterUserCookie = "";
 var localMode = false;
 
-app.use(express.cookieParser());
+app.use(cookieParser())
 
 // set a cookie
 app.use(function (req, res, next) {
