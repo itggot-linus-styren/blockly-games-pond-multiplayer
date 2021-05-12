@@ -23,10 +23,13 @@ jobs:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
           EXCLUDE: "/dist/, /node_modules/"
-    - name: Install SSH private key
-      run: |
-        echo $OPENSSH_KEY > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST}} 'echo Hello World'
-      env:
-        OPENSSH_KEY: ${{ secrets.OPENSSH_KEY }}
+    - name: multiple command
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.OPENSSH_KEY }}
+        port: 22
+        script: |
+          whoami
+          ls -al
