@@ -1,0 +1,3 @@
+[submodule "blockly-games"]
+	path = blockly-games
+	url = git@github.com:google/blockly-games.git
