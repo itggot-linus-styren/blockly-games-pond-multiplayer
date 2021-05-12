@@ -34,7 +34,7 @@ jobs:
           SOURCE: "pond/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: "/root/blockly-games-pond-multiplayer/pond/"
+          TARGET: ${{ secrets.POND_APP }}
    - name: Build tournament app
       working-directory: ./blockly-games
       run: |
@@ -49,7 +49,7 @@ jobs:
           SOURCE: "tournament/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: "/root/blockly-games-pond-multiplayer/tournament/"
+          TARGET: ${{ secrets.TOURNAMENT_APP }}
     - name: Deploy tournament-server
       uses: easingthemes/ssh-deploy@v2.1.5
       env:
@@ -58,7 +58,7 @@ jobs:
           SOURCE: "tournament-server/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: "/root/blockly-games-pond-multiplayer/tournament-server/"
+          TARGET: ${{ secrets.TOURNAMENT_SERVER }}
           EXCLUDE: "/dist/, /node_modules/"
     - name: multiple command
       uses: appleboy/ssh-action@master
