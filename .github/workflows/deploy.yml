@@ -36,7 +36,7 @@ jobs:
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         TARGET: ${{ secrets.POND_APP }}
         EXCLUDE: "/dist/, /node_modules/"
-   - name: Build tournament app
+    - name: Build tournament app
       working-directory: ./blockly-games
       run: |
         rm -r ./appengine/pond
