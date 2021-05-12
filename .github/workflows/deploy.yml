@@ -26,6 +26,7 @@ jobs:
     - name: Install SSH private key
       run: |
         echo $SSH_PRIVATE_KEY > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST}} 'echo Hello World'
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
