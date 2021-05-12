@@ -35,4 +35,5 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 src/app/constants.ts
 
+*/**/generated/
 bots/

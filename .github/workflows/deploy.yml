@@ -9,11 +9,48 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      with:
+        submodules: 'true'
     - name: Install Node.js
       uses: actions/setup-node@v1
       with:
         node-version: '10.x'
-    - name: Deploy to Server
+    - name: Install blockly dependencies
+      working-directory: ./blockly-games
+      run: |
+        sudo apt-get install unzip subversion default-jre python-is-python3
+        make deps
+    - name: Build pond app
+      working-directory: ./blockly-games
+      run: |
+        rm -r ./appengine/pond
+        ln -nsf ../pond ./appengine/pond
+        make pond-duck-en
+    - name: Deploy pond app
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "pond/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: /root/blockly-games-pond-multiplayer/pond/
+   - name: Build tournament app
+      working-directory: ./blockly-games
+      run: |
+        rm -r ./appengine/pond
+        ln -nsf ../tournament ./appengine/pond
+        make pond-duck-en
+    - name: Deploy tournament app
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "tournament/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: /root/blockly-games-pond-multiplayer/tournament/
+    - name: Deploy tournament-server
       uses: easingthemes/ssh-deploy@v2.1.5
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
@@ -21,7 +58,7 @@ jobs:
           SOURCE: "tournament-server/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
+          TARGET: /root/blockly-games-pond-multiplayer/tournament-server/
           EXCLUDE: "/dist/, /node_modules/"
     - name: multiple command
       uses: appleboy/ssh-action@master
@@ -31,5 +68,5 @@ jobs:
         key: ${{ secrets.OPENSSH_KEY }}
         port: 22
         script: |
-          whoami
-          ls -al
+          (cd /root/blockly-games-pond-multiplayer/tournament-server/ && npm install)
+          systemctl restart pond
