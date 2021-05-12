@@ -35,6 +35,7 @@ jobs:
         REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         TARGET: ${{ secrets.POND_APP }}
+        EXCLUDE: "/dist/, /node_modules/"
    - name: Build tournament app
       working-directory: ./blockly-games
       run: |
@@ -50,6 +51,7 @@ jobs:
         REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         TARGET: ${{ secrets.TOURNAMENT_APP }}
+        EXCLUDE: "/dist/, /node_modules/"
     - name: Deploy tournament-server
       uses: easingthemes/ssh-deploy@v2.1.5
       env:
