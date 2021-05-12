@@ -24,7 +24,9 @@ jobs:
       working-directory: ./blockly-games
       run: |
         rm -r ./appengine/pond
-        ln -nsf ../pond ./appengine/pond
+        ln -nsf $(realpath ../pond) $(realpath ./appengine/pond)
+        echo Content of pond:
+        ls -lh ./appengine/pond
         make pond-duck-en
     - name: Deploy pond app
       uses: easingthemes/ssh-deploy@v2.1.5
@@ -40,7 +42,7 @@ jobs:
       working-directory: ./blockly-games
       run: |
         rm -r ./appengine/pond
-        ln -nsf ../tournament ./appengine/pond
+        ln -nsf $(realpath ../tournament) $(realpath ./appengine/pond)
         make pond-duck-en
     - name: Deploy tournament app
       uses: easingthemes/ssh-deploy@v2.1.5
