@@ -35,7 +35,7 @@ app.use(function (req, res, next) {
     console.log('cookie created successfully');
   } else {
     // yes, cookie was already present
-    console.log('cookie exists', cookie);
+    //console.log('cookie exists', cookie);
   }
   next(); // <-- important!
 });
@@ -193,8 +193,7 @@ app.post('/score', function (req, res) {
   if (ffa.isDone()) {
     console.log("Tournament is done. Winner: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
     res.send("Final standings:\n" + finalStandings(playerList, true));
-
-    fs.rmdirSync("/bots", { recursive: true });
+    fs.rmdirSync("./bots", { recursive: true });
 
     restart();
   } else {
@@ -251,9 +250,9 @@ app.get('/start', function (req, res) {
     return;
   }
 
-  window.setTimeout(() => {
+  setTimeout(() => {
     if (tournamentStarted) {
-      fs.rmdirSync("/bots", { recursive: true });
+      fs.rmdirSync("./bots", { recursive: true });
       restart();
     }
 
