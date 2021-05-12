@@ -1,5 +1,5 @@
 var fs = require('fs')
-var FFA = require('FFA')
+var FFA = require('ffa')
 var express = require('express')
 var bodyParser = require('body-parser')
 var Filter = require('bad-words'),
@@ -24,8 +24,8 @@ if (!fs.existsSync("bots/")){
 let files = fs.readdirSync('bots/');
 files = files.filter((f) => f.includes(".js"));
 
-for (const fName of files) { 
-    let pId = fName.split('.')[0] 
+for (const fName of files) {
+    let pId = fName.split('.')[0]
     var bot = fs.readFileSync("bots/" + fName, "utf8");
     var sourceLines = bot.split(/\r\n|\r|\n/);
     playerList.push({
@@ -59,7 +59,7 @@ function playerInFile(playerTag) {
 
 function advanceTournament() {
     for (const [iMatch, match] of ffa.matches.entries()) {
-        if (ffa.isPlayable(match) && !match.m) {            
+        if (ffa.isPlayable(match) && !match.m) {
             currentPlayers = []
 
             match.p.forEach((pId) => {
@@ -147,7 +147,7 @@ app.post('/score', function (req, res) {
     if (!ffa.score(currentMatchID, scoreMap)) {
         res.status(400).send('Unable to score: ' + scoreMap);
         return;
-    }    
+    }
 
     if (ffa.isDone()) {
         console.log("Tournament is done. Winner: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
@@ -160,6 +160,8 @@ app.post('/score', function (req, res) {
         advanceTournament();
     }
 });
+
+app.get('/', express.static('..'))
 
 app.get('/start', function (req, res) {
     if (process.env.NODE_ENV !== 'remote' && (req.headers['x-forwarded-for'] || !["::ffff:127.0.0.1", "::1"].includes(req.connection.remoteAddress))) {
@@ -233,9 +235,9 @@ app.post('/tournament', function (req, res) {
             playerTag,
             code
         }
-    
+
         playerList.push(player)
-    }    
+    }
 
     code = req.body[playerTag];
     code = filter.clean(code.replace(/\/\/player/g, '// Player'));
