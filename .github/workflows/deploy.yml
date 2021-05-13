@@ -59,12 +59,12 @@ jobs:
       uses: easingthemes/ssh-deploy@v2.1.5
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-        ARGS: "-rltgoDzvO --delete"
+        ARGS: "-rltgoDzvO"
         SOURCE: "tournament-server/"
         REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         TARGET: ${{ secrets.TOURNAMENT_SERVER }}
-        EXCLUDE: "tournament-server/bots/, tournament-server/node_modules/"
+        EXCLUDE: "bots/, node_modules/"
     - name: multiple command
       uses: appleboy/ssh-action@master
       with:
