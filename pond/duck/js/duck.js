@@ -41,6 +41,37 @@ Pond.Duck.editorTabs = null;
  */
 Pond.Duck.ignoreEditorChanges_ = true;
 
+function saveWorkspace() {
+  var xmlDom = Blockly.Xml.workspaceToDom(BlocklyInterface.workspace);
+  var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
+
+  window.localStorage.setItem("blockly.xml", xmlText);
+  window.localStorage.setItem("blockly.disabled", JSON.stringify(BlocklyInterface.blocksDisabled));
+  window.localStorage.setItem("blockly.code", BlocklyInterface.getJsCode())
+}
+
+function loadWorkspace() {
+  var xmlText = window.localStorage.getItem("blockly.xml");
+  var blocklyDisabled = JSON.parse(window.localStorage.getItem("blockly.disabled"));
+  var jsCode = window.localStorage.getItem("blockly.code");
+
+  if (xmlText) {
+      BlocklyInterface.workspace.clear();
+      var xmlDom = Blockly.Xml.textToDom(xmlText);
+      Blockly.Xml.domToWorkspace(BlocklyInterface.workspace, xmlDom);
+  }
+
+  if (blocklyDisabled && jsCode) {
+    Blockly.utils.dom.addClass(Pond.Duck.editorTabs[0], 'tab-disabled');
+    BlocklyInterface.blocksDisabled = true;
+    Pond.Duck.changeTab(1);
+
+    Pond.Duck.ignoreEditorChanges_ = true;
+    BlocklyInterface.editor['setValue'](jsCode, -1);
+    Pond.Duck.ignoreEditorChanges_ = false;
+  }
+}
+
 /**
  * Initialize Ace and the pond.  Called on page load.
  */
@@ -182,6 +213,13 @@ Pond.Duck.init = function() {
   Pond.reset();
   Pond.Duck.changeTab(0);
   Pond.Duck.ignoreEditorChanges_ = false;
+
+  loadWorkspace();
+
+  setInterval(function () {
+    console.log("Auto-saving workspace");
+    saveWorkspace();
+  }, 30 * 1000);
 };
 
 /**
