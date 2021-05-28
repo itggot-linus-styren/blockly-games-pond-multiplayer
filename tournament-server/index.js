@@ -274,12 +274,6 @@ app.get('/start', function (req, res) {
     return;
   }
 
-  masterUserCookie = req.cookies.cookieName;
-
-  console.log(req.cookies.cookieName);
-  console.log(masterUserCookie);
-  console.log(masterUserCookie == req.cookies.cookieName);
-
   if (tournamentStarted) {
     res.status(400).send('Tournament already started. Wait 1 hour to reset or restart script.');
     return;
@@ -291,6 +285,8 @@ app.get('/start', function (req, res) {
     res.status(400).send('Too few participants (< 9).');
     return;
   }
+
+  masterUserCookie = req.cookies.cookieName;
 
   setTimeout(() => {
     if (tournamentStarted) {
