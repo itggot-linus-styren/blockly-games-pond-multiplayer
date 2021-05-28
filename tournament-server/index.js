@@ -154,6 +154,10 @@ app.post('/score', function (req, res) {
     return;
   }
 
+  console.log(req.cookies.cookieName);
+  console.log(masterUserCookie);
+  console.log(masterUserCookie == req.cookies.cookieName);
+
   if (!localMode && masterUserCookie != req.cookies.cookieName) {
     res.status(400).send('Sorry, you are not master user.');
     return;
@@ -192,8 +196,7 @@ app.post('/score', function (req, res) {
 
   if (ffa.isDone()) {
     console.log("Tournament is done. Winner: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
-    res.send("Final standings:\n" + finalStandings(playerList, true));
-    fs.rmdirSync("./bots", { recursive: true });
+    res.send("Final standings:\n" + finalStandings(playerList, true) + "\nGoto https://pond-te4.duckdns.org/reset to reset participants.");
 
     restart();
   } else {
@@ -207,6 +210,22 @@ app.post('/score', function (req, res) {
 
 app.use('/', express.static('..'))
 
+app.get('/reset', function (req, res) {
+  if (localMode && (req.headers['x-forwarded-for'] || !["::ffff:127.0.0.1", "::1"].includes(req.connection.remoteAddress))) {
+    res.status(400).send('Sorry, you are not localhost.');
+    return;
+  }
+
+  if (!localMode && tournamentStarted && masterUserCookie != req.cookies.cookieName) {
+    res.status(400).send('Sorry, you are not master user.');
+    return;
+  }
+
+  fs.rmdirSync("bots/", { recursive: true });
+  restart();
+  res.send("game has been reset\n")
+});
+
 app.get('/locklocal', function (req, res) {
   if (process.env.NODE_ENV !== 'remote' && (req.headers['x-forwarded-for'] || !["::ffff:127.0.0.1", "::1"].includes(req.connection.remoteAddress))) {
     res.status(400).send('Sorry, you are not localhost.');
@@ -214,7 +233,7 @@ app.get('/locklocal', function (req, res) {
   }
 
   localMode = true;
-  res.send("localMode = true");
+  res.send("localMode = true\n");
 });
 
 app.get('/unlocklocal', function (req, res) {
@@ -224,7 +243,7 @@ app.get('/unlocklocal', function (req, res) {
   }
 
   localMode = false;
-  res.send("localMode = false");
+  res.send("localMode = false\n");
 });
 
 app.get('/start', function (req, res) {
@@ -240,6 +259,10 @@ app.get('/start', function (req, res) {
 
   masterUserCookie = req.cookies.cookieName;
 
+  console.log(req.cookies.cookieName);
+  console.log(masterUserCookie);
+  console.log(masterUserCookie == req.cookies.cookieName);
+
   if (tournamentStarted) {
     res.status(400).send('Tournament already started. Wait 1 hour to reset or restart script.');
     return;
@@ -254,7 +277,6 @@ app.get('/start', function (req, res) {
 
   setTimeout(() => {
     if (tournamentStarted) {
-      fs.rmdirSync("./bots", { recursive: true });
       restart();
     }
 

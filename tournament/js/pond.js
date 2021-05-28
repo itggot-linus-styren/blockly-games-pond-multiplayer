@@ -82,6 +82,7 @@ Pond.scoreButtonClick = function (e) {
   var request = new Request('https://pond-te4.duckdns.org/score',
     {
       method: 'POST',
+      credentials: "same-origin",
       headers: {
         'Content-Type': 'application/json'
       },
@@ -107,7 +108,8 @@ Pond.startButtonClick = function (e) {
 
   var request = new Request('https://pond-te4.duckdns.org/start',
     {
-      method: 'GET'
+      method: 'GET',
+      credentials: "same-origin"
     });
 
   fetch(request)
