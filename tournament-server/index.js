@@ -1,4 +1,5 @@
 var fs = require('fs')
+const Path = require('path');
 var FFA = require('ffa')
 var express = require('express')
 var cookieParser = require('cookie-parser')
@@ -81,6 +82,22 @@ function restart() {
     });
   }
 }
+
+function deleteFolderRecursive(directoryPath) {
+  if (fs.existsSync(directoryPath)) {
+    fs.readdirSync(directoryPath).forEach((file, index) => {
+      const curPath = Path.join(directoryPath, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        // recurse
+        deleteFolderRecursive(curPath);
+      } else {
+        // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(directoryPath);
+  }
+};
 
 function playerInFile(playerTag) {
   var hasPlayer = false;
@@ -221,7 +238,7 @@ app.get('/reset', function (req, res) {
     return;
   }
 
-  fs.rmdirSync("bots/", { recursive: true });
+  deleteFolderRecursive("bots/");
   restart();
   res.send("game has been reset\n")
 });
