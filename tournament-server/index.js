@@ -213,7 +213,7 @@ app.post('/score', function (req, res) {
 
   if (ffa.isDone()) {
     console.log("Tournament is done. Winner: " + playerList.find((p) => ffa.results()[0].seed).playerTag);
-    res.send("Final standings:\n" + finalStandings(playerList, true) + "\nGoto https://pond-te4.duckdns.org/reset to reset participants.");
+    res.send("Final standings:\n" + finalStandings(playerList, true) + "\nGoto " + req.protocol+"://"+req.headers.host + "/reset to reset participants.");
 
     restart();
   } else {

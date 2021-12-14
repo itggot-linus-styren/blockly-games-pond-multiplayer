@@ -79,7 +79,7 @@ Pond.scoreButtonClick = function (e) {
   var payload = {};
   payload['score'] = score;
 
-  var request = new Request('https://pond-te4.duckdns.org/score',
+  var request = new Request(window.location.origin + '/score',
     {
       method: 'POST',
       credentials: "same-origin",
@@ -105,8 +105,7 @@ Pond.startButtonClick = function (e) {
     return;
   }
 
-
-  var request = new Request('https://pond-te4.duckdns.org/start',
+  var request = new Request(window.location.origin + '/start',
     {
       method: 'GET',
       credentials: "same-origin"

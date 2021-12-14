@@ -67,7 +67,7 @@ Pond.uploadButtonClick = function (e) {
   var payload = {};
   payload[playerTag] = BlocklyInterface.getJsCode();
 
-  var request = new Request('https://pond-te4.duckdns.org/tournament',
+  var request = new Request(window.location.origin + '/tournament',
     {
       method: 'POST',
       headers: {
