@@ -76,5 +76,6 @@ jobs:
         key: ${{ secrets.OPENSSH_KEY }}
         port: 22
         script: |
+          (bash ~/duckdns/duck.sh)
           (cd /root/blockly-games-pond-multiplayer/tournament-server/ && npm install)
           systemctl restart pond
